@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mangoe — Ahmedabad opportunity pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+:root{--bg:#f7f7f5;--sf:#fff;--sf2:#f1f1ee;--tx:#1a1a18;--t2:#555550;--t3:#8e8e86;
+--bd:#e3e2dc;--pri:#2d5be3;--pril:#ebeefb;--hot:#c0440a;--hotl:#fce9e1;
+--win:#1a7a42;--winl:#e6f5eb;--caut:#a87020;--cautl:#fef4e2;--mute:#a0a09a;
+--r:8px;--mono:'IBM Plex Mono',monospace;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131312;--sf:#1d1d1b;--sf2:#262624;
+--tx:#eeede9;--t2:#b8b6ae;--t3:#807e76;--bd:#333230;--pri:#6b8af5;--pril:#1c2240;
+--hot:#f07040;--hotl:#2e1c14;--win:#5ece80;--winl:#14281c;--caut:#e8a840;--cautl:#2e2414;--mute:#6b6b65}}
+:root[data-theme="dark"]{--bg:#131312;--sf:#1d1d1b;--sf2:#262624;--tx:#eeede9;--t2:#b8b6ae;
+--t3:#807e76;--bd:#333230;--pri:#6b8af5;--pril:#1c2240;--hot:#f07040;--hotl:#2e1c14;
+--win:#5ece80;--winl:#14281c;--caut:#e8a840;--cautl:#2e2414;--mute:#6b6b65}
+*,*::before,*::after{box-sizing:border-box;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0)}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.5;
+padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.w{max-width:1320px;margin:0 auto;padding:24px 20px 80px}
+header{margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+h1{font-size:17px;font-weight:600}header p{font-size:12px;color:var(--t3);margin-top:1px}
+.hdr-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.status{font-size:10px;color:var(--t3);padding:3px 8px;background:var(--sf2);border-radius:4px}
+.up{border:1.5px dashed var(--bd);border-radius:var(--r);padding:28px;text-align:center;cursor:pointer;
+background:var(--sf);transition:all .15s;margin-bottom:20px}
+.up:hover,.up.ov{border-color:var(--pri);background:var(--pril)}.up input{display:none}
+.up b{font-size:13px}.up .s{font-size:11px;color:var(--t3);margin-top:2px}
+.up .bt{display:inline-block;margin-top:8px;padding:5px 14px;background:var(--pri);color:#fff;border-radius:var(--r);font-size:11px;font-weight:500}
+.loading{text-align:center;padding:48px;color:var(--t3);font-size:13px}
+.fun{display:flex;gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.fun .f{flex:1;background:var(--sf);padding:14px 16px;position:relative}
+.fun .f .fn{font-family:var(--mono);font-size:28px;font-weight:500;letter-spacing:-1px;line-height:1}
+.fun .f .fl{font-size:11px;color:var(--t3);margin-bottom:4px}
+.fun .f .fs{font-size:10px;color:var(--t3);margin-top:3px}
+.fun .f.hot{background:var(--hotl)}.fun .f.hot .fn{color:var(--hot)}
+.fun .f::after{content:'→';position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:14px;z-index:1}
+.fun .f:last-child::after{display:none}
+@media(max-width:700px){.fun{flex-wrap:wrap}.fun .f{min-width:45%}.fun .f::after{display:none}}
+.sec{margin-bottom:14px}.sec-t{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.sec-t span{font-size:11px;font-weight:400;color:var(--t3)}
+.wr{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+.wd{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 16px;cursor:pointer;
+transition:all .12s;flex:1;min-width:120px}
+.wd:hover{border-color:var(--pri)}.wd.on{border-color:var(--pri);background:var(--pril)}
+.wd .wl{font-size:10px;color:var(--t3);margin-bottom:4px;line-height:1.2}
+.wd .wn{font-family:var(--mono);font-size:22px;font-weight:500;letter-spacing:-.5px;line-height:1}
+.wd .ws{font-size:10px;color:var(--t2);margin-top:3px}
+.wd .wa{font-size:9px;color:var(--pri);margin-top:4px;opacity:0;transition:opacity .12s}
+.wd:hover .wa,.wd.on .wa{opacity:1}
+.wd.hot .wn{color:var(--hot)}.wd.win .wn{color:var(--win)}.wd.pri .wn{color:var(--pri)}
+/* expand panel — card layout */
+.xp{display:none;background:var(--sf);border:1px solid var(--bd);border-radius:0 0 var(--r) var(--r);
+margin-top:-2px;margin-bottom:8px;overflow:hidden;max-height:500px;overflow-y:auto}
+.xp.open{display:block}
+.xp a{color:var(--pri);text-decoration:none}
+.xp .xp-head{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--sf);z-index:1}
+.xp .xp-head b{font-size:12px}.xp .xp-head span{font-size:10px;color:var(--t3)}
+.xp-list{padding:4px 0}
+.xp-item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 14px;border-bottom:1px solid var(--bd);align-items:start}
+.xp-item:last-child{border-bottom:none}
+.xp-item:hover{background:var(--pril)}
+.xp-item .xi-name{font-size:12px;font-weight:600;line-height:1.3}
+.xp-item .xi-builder{font-size:11px;color:var(--t2);margin-top:1px}
+.xp-item .xi-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--t2)}
+.xp-item .xi-meta .xm{display:flex;flex-direction:column;gap:1px}
+.xp-item .xi-meta .xm-l{font-size:9px;color:var(--t3);font-weight:500}
+.xp-item .xi-meta .xm-v{font-family:var(--mono);font-size:12px;color:var(--tx)}
+.xp-item .xi-act{display:flex;flex-direction:column;align-items:flex-end;gap:4px;white-space:nowrap}
+.xp-item .xi-phone{font-family:var(--mono);font-size:12px;padding:3px 10px;background:var(--pril);
+border-radius:4px;color:var(--pri);text-decoration:none;font-weight:500}
+.xp-item .xi-phone:hover{background:var(--pri);color:#fff}
+.xp-item .xi-cost{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--tx)}
+/* builders */
+.bg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.bc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;
+display:flex;justify-content:space-between;align-items:flex-start;gap:8px;cursor:pointer;transition:all .12s}
+.bc:hover{border-color:var(--pri)}.bc.on{border-color:var(--pri);background:var(--pril)}
+.bc .bn{font-size:12px;font-weight:600;line-height:1.3;margin-bottom:3px}
+.bc .bm{font-size:11px;color:var(--t2)}.bc .bm a{color:var(--pri);text-decoration:none}
+.bc .bs{text-align:right;white-space:nowrap}
+.bc .bv{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--pri);line-height:1}
+.bc .bl{font-size:10px;color:var(--t3);margin-top:2px}
+.tg{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:500;line-height:1.6}
+.tg-g{background:var(--winl);color:var(--win)}.tg-b{background:var(--pril);color:var(--pri)}
+.tg-r{background:var(--hotl);color:var(--hot)}.tg-o{background:var(--cautl);color:var(--caut)}.tg-m{background:var(--sf2);color:var(--mute)}
+.pb{width:50px;height:5px;background:var(--sf2);border-radius:3px;display:inline-block;vertical-align:middle;margin-right:3px}
+.pb i{display:block;height:100%;border-radius:3px}
+.pills{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.pill{padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--bd);
+background:var(--sf);color:var(--t2);font-weight:500;transition:all .15s}
+.pill.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.fl{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.fl input[type=text]{font-family:inherit;font-size:11px;padding:5px 8px;border:1px solid var(--bd);
+border-radius:6px;background:var(--sf);color:var(--tx);min-width:180px}
+.fl input:focus{outline:2px solid var(--pri);outline-offset:-1px}
+.btn{padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--t2);font-size:11px;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--sf2)}.btn-p{background:var(--pri);color:#fff;border-color:var(--pri)}
+.tc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.th{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+.th h3{font-size:12px;font-weight:600}.th .cn{font-size:10px;color:var(--t3)}
+.tw{overflow-x:auto}
+table.main{width:100%;border-collapse:collapse;font-size:11px}
+table.main thead th{text-align:left;padding:6px 8px;font-weight:500;font-size:10px;color:var(--t3);
+border-bottom:1px solid var(--bd);background:var(--sf2);white-space:nowrap;cursor:pointer;user-select:none}
+table.main thead th:hover{color:var(--tx)}
+table.main tbody tr{border-bottom:1px solid var(--bd)}table.main tbody tr:last-child{border-bottom:none}
+table.main tbody tr:hover{background:var(--pril)}
+table.main td{padding:5px 8px;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+table.main td.wc{white-space:normal;min-width:140px}
+.gap{color:var(--t3)}
+.pg{display:flex;justify-content:center;align-items:center;gap:4px;padding:10px;border-top:1px solid var(--bd)}
+.pg button{padding:3px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--sf);color:var(--t2);font-size:10px;cursor:pointer;font-family:inherit}
+.pg button.ac{background:var(--pri);color:#fff;border-color:var(--pri)}.pg button:disabled{opacity:.3}
+.pi{font-size:10px;color:var(--t3)}
+.empty{text-align:center;padding:36px;color:var(--t3);font-size:13px}
+</style>
+</head>
+<body>
+<div class="w">
+<header>
+  <div><h1>Ahmedabad opportunity pipeline</h1>
+  <p>Click any number to see the projects behind it</p></div>
+  <div class="hdr-r">
+    <span class="status" id="dbStatus"></span>
+    <button class="btn" onclick="showUpload()" id="replBtn" style="display:none">Replace data</button>
+    <button class="btn btn-p" onclick="expCSV()" id="expB" style="display:none">Export</button>
+  </div>
+</header>
+
+<div class="up" id="uz" style="display:none"><input type="file" id="fi" accept=".csv,.json">
+<b>Drop gujrera_opportunity_database file here</b>
+<div class="s">.csv or .json</div><div class="bt">Choose file</div></div>
+
+<div id="dash" style="display:none">
+<div class="fun" id="funR"></div>
+<div class="pills">
+  <div class="pill on" onclick="setV('active')" id="vAct">Active luxury</div>
+  <div class="pill" onclick="setV('hot')" id="vHot">Electrical phase</div>
+  <div class="pill" onclick="setV('all')" id="vAll">Full database</div>
+</div>
+<div class="sec"><div class="sec-t">Construction phase <span>by progress score</span></div>
+<div class="wr" id="phR"></div><div class="xp" id="phX"></div></div>
+<div class="sec"><div class="sec-t">Unit sizing <span>by avg carpet area</span></div>
+<div class="wr" id="szR"></div><div class="xp" id="szX"></div></div>
+<div class="sec"><div class="sec-t">BHK mix <span id="bhkS"></span></div>
+<div class="wr" id="bkR"></div><div class="xp" id="bkX"></div></div>
+<div class="sec"><div class="sec-t">Builder targets <span id="blS"></span></div>
+<div class="bg" id="blR"></div><div class="xp" id="blX"></div></div>
+<div class="sec" style="margin-top:6px"><div class="sec-t">Full pipeline</div>
+<div class="fl">
+  <input type="text" id="fS" placeholder="Search project, builder..." oninput="rMain()">
+  <button class="btn" onclick="document.getElementById('fS').value='';rMain()">Clear</button>
+</div>
+<div class="tc"><div class="th"><h3>All projects in view</h3><span class="cn" id="mCn"></span></div>
+<div class="tw"><table class="main"><thead><tr id="mH"></tr></thead><tbody id="mB"></tbody></table></div>
+<div class="pg" id="mPg"></div></div></div>
+</div>
+<div class="empty" id="emS">Loading data...</div>
+</div>
+
+<script>
+let R=[],VIEW=[],sC=null,sD=1,pg=1,curV="active",openPanel=null,openKey=null;
+const PS=25;
+const SZ=[
+  {k:"compact",l:"Compact",rng:"<600 sqft",lo:0,hi:55.74,d:"Studio & 1BHK"},
+  {k:"mid",l:"Mid-size",rng:"600\u20131K sqft",lo:55.74,hi:92.9,d:"2 BHK typical"},
+  {k:"large",l:"Large",rng:"1\u20131.5K sqft",lo:92.9,hi:139.35,d:"3 BHK typical"},
+  {k:"premium",l:"Premium",rng:"1.5\u20132.5K sqft",lo:139.35,hi:232.26,d:"3\u20134 BHK"},
+  {k:"villa",l:"Villa / Bungalow",rng:"2500+ sqft",lo:232.26,hi:99999,d:"4\u20135 BHK"},
+];
+const PH=[
+  {k:"early",l:"Early stage",rng:"0\u201330%",lo:0,hi:30,c:""},
+  {k:"structure",l:"Structure",rng:"30\u201360%",lo:30,hi:60,c:"pri"},
+  {k:"electrical",l:"Electrical phase",rng:"60\u201385%",lo:60,hi:85,c:"hot"},
+  {k:"finishing",l:"Finishing",rng:"85\u2013100%",lo:85,hi:101,c:"win"},
+];
+const MCOLS=[
+  {k:"project_name",l:"Project",w:1},{k:"builder",l:"Builder",w:1},
+  {k:"total_units",l:"Units",n:1},{k:"bhk_mix",l:"BHK"},
+  {k:"_sqft",l:"Size (sqft)"},{k:"_phase",l:"Phase"},
+  {k:"progress_score",l:"Progress",n:1},{k:"cost_in_cr",l:"Cost (\u20b9Cr)",n:1},
+  {k:"unit_price_range_lakhs",l:"Unit price"},{k:"builder_mobile",l:"Phone"},
+];
+
+var uz=document.getElementById("uz"),fi=document.getElementById("fi");
+uz.onclick=function(){fi.click()};
+uz.ondragover=function(e){e.preventDefault();uz.classList.add("ov")};
+uz.ondragleave=function(){uz.classList.remove("ov")};
+uz.ondrop=function(e){e.preventDefault();uz.classList.remove("ov");if(e.dataTransfer.files.length)hf(e.dataTransfer.files[0])};
+fi.onchange=function(e){if(e.target.files.length)hf(e.target.files[0])};
+function showUpload(){uz.style.display="block";uz.scrollIntoView({behavior:"smooth"})}
+
+function hf(f){var ext=f.name.split(".").pop().toLowerCase();var rd=new FileReader();
+if(ext==="json"){rd.onload=function(e){try{var d=JSON.parse(e.target.result);loadData(d)}catch(x){alert(x)}};rd.readAsText(f)}
+else if(ext==="csv"){rd.onload=function(e){var d=Papa.parse(e.target.result,{header:true,skipEmptyLines:true}).data;loadData(d)};rd.readAsText(f)}
+else alert("Use .csv or .json")}
+
+function pc(s){if(!s)return 0;var n=parseFloat(String(s).replace(/[^\d.]/g,""));return isNaN(n)?0:n}
+function phas(r){var p=r._score,t=(r.progress_text||"").toLowerCase();
+if(t.indexOf("complete")>=0)return"Completed";if(p>=85)return"Finishing";if(p>=60)return"Electrical phase";
+if(p>=30)return"Structure";if(p>0)return"Early stage";if(t.indexOf("track")>=0)return"On track";
+if(t.indexOf("slow")>=0||t.indexOf("ill")>=0)return"At risk";return r._enriched?"Early stage":"\u2014"}
+function szKey(r){var mn=parseFloat(r.min_carpet_sqm)||0,mx=parseFloat(r.max_carpet_sqm)||0;
+var avg=(mn&&mx)?(mn+mx)/2:(mn||mx);if(!avg)return"";
+for(var i=0;i<SZ.length;i++){if(avg>=SZ[i].lo&&avg<SZ[i].hi)return SZ[i].k}return""}
+
+function normalize(d){
+return d.map(function(r){var o={};for(var k in r){if(r.hasOwnProperty(k))o[k.trim().toLowerCase().replace(/[\s-]+/g,"_")]=(r[k]==null?"":r[k]).toString().trim()}
+o._cost=pc(o.total_project_cost||"");if(!o._cost&&o.cost_in_cr)o._cost=parseFloat(o.cost_in_cr)*1e7;
+if(!o.cost_in_cr&&o._cost)o.cost_in_cr=(o._cost/1e7).toFixed(2);
+var mn=parseFloat(o.min_carpet_sqm)||0,mx=parseFloat(o.max_carpet_sqm)||0;
+o._sqft=(mn&&mx)?Math.round(mn*10.764)+"\u2013"+Math.round(mx*10.764):"";
+o._enriched=!!(o.total_units&&o.total_units!=="0");o._score=parseFloat(o.progress_score)||0;
+o._lux=o._cost>25e7;o._complete=(o.progress_text||"").toLowerCase().indexOf("complete")>=0;
+o._active=o._enriched&&o._lux&&!o._complete;o._phase=phas(o);
+o._hot=o._active&&o._score>=30&&o._score<85;o._szk=szKey(o);
+var phk="early";for(var i=0;i<PH.length;i++){if(o._score>=PH[i].lo&&o._score<PH[i].hi)phk=PH[i].k}
+o._phk=phk;return o})}
+
+function loadData(rawData){
+  R=normalize(rawData);
+  document.getElementById("dbStatus").textContent=R.length+" projects loaded";
+  uz.style.display="none";
+  document.getElementById("emS").style.display="none";
+  document.getElementById("dash").style.display="block";
+  document.getElementById("expB").style.display="inline-block";
+  document.getElementById("replBtn").style.display="inline-block";
+  setV("active");
+}
+
+function setV(v){curV=v;openPanel=null;openKey=null;
+document.querySelectorAll(".pills .pill").forEach(function(p){p.classList.remove("on")});
+document.getElementById({hot:"vHot",active:"vAct",all:"vAll"}[v]).classList.add("on");
+VIEW=v==="hot"?R.filter(function(r){return r._hot}):v==="active"?R.filter(function(r){return r._active}):R;
+render()}
+function render(){rFun();rPh();rSz();rBk();rBl();rMain();closeAll()}
+
+function rFun(){
+var a=R.length,l=R.filter(function(r){return r._lux}).length,
+ac=R.filter(function(r){return r._active}).length,
+aU=R.filter(function(r){return r._active}).reduce(function(s,r){return s+(parseInt(r.total_units)||0)},0),
+h=R.filter(function(r){return r._hot}).length,
+hU=R.filter(function(r){return r._hot}).reduce(function(s,r){return s+(parseInt(r.total_units)||0)},0);
+document.getElementById("funR").innerHTML=[
+{l:"Registered",v:a.toLocaleString("en-IN"),s:"All residential"},
+{l:"Luxury",v:l.toLocaleString("en-IN"),s:">\u20b925 Cr"},
+{l:"Under construction",v:ac.toLocaleString("en-IN"),s:aU.toLocaleString("en-IN")+" units"},
+{l:"Electrical phase",v:h.toLocaleString("en-IN"),s:hU.toLocaleString("en-IN")+" units",c:"hot"},
+].map(function(f){return'<div class="f '+(f.c||"")+'"><div class="fl">'+f.l+'</div><div class="fn">'+f.v+'</div><div class="fs">'+f.s+'</div></div>'}).join("")}
+
+function rPh(){
+document.getElementById("phR").innerHTML=PH.map(function(p){
+var proj=VIEW.filter(function(r){return r._phk===p.k});
+var u=proj.reduce(function(s,r){return s+(parseInt(r.total_units)||0)},0);
+var on=openPanel==="ph"&&openKey===p.k?" on":"";
+return'<div class="wd '+p.c+on+'" onclick="toggle(\'ph\',\''+p.k+'\')"><div class="wl">'+p.l+"<br>"+p.rng+'</div><div class="wn">'+proj.length+'</div><div class="ws">'+u.toLocaleString("en-IN")+' units</div><div class="wa">Click to see projects \u2192</div></div>'}).join("")}
+
+function rSz(){
+document.getElementById("szR").innerHTML=SZ.map(function(s){
+var proj=VIEW.filter(function(r){return r._szk===s.k});
+var u=proj.reduce(function(ss,r){return ss+(parseInt(r.total_units)||0)},0);
+var on=openPanel==="sz"&&openKey===s.k?" on":"";
+return'<div class="wd'+on+'" onclick="toggle(\'sz\',\''+s.k+'\')"><div class="wl">'+s.l+"<br>"+s.rng+'</div><div class="wn">'+u.toLocaleString("en-IN")+'</div><div class="ws">'+proj.length+" projects \u00b7 "+s.d+'</div><div class="wa">Click to see projects \u2192</div></div>'}).join("")}
+
+function rBk(){
+var cn={};VIEW.forEach(function(r){var b=r.bhk_mix;if(b){if(!cn[b])cn[b]={p:0,u:0};cn[b].p++;cn[b].u+=parseInt(r.total_units)||0}});
+var sorted=Object.entries(cn).sort(function(a,b){return b[1].u-a[1].u});
+var total=sorted.reduce(function(s,e){return s+e[1].u},0);
+document.getElementById("bhkS").textContent=total.toLocaleString("en-IN")+" units with BHK data";
+document.getElementById("bkR").innerHTML=sorted.map(function(e){
+var k=e[0],v=e[1];var on=openPanel==="bk"&&openKey===k?" on":"";
+return'<div class="wd'+on+'" onclick="toggle(\'bk\',\''+esc(k)+'\')"><div class="wl">'+k+'</div><div class="wn">'+v.u.toLocaleString("en-IN")+'</div><div class="ws">'+v.p+' projects</div><div class="wa">Click to see projects \u2192</div></div>'}).join("")}
+
+function rBl(){
+var bld={};VIEW.forEach(function(r){var b=r.builder;if(!b)return;if(!bld[b])bld[b]={name:b,p:0,u:0,ph:"",em:""};
+bld[b].p++;bld[b].u+=parseInt(r.total_units)||0;
+if(r.builder_mobile&&!bld[b].ph)bld[b].ph=r.builder_mobile;if(r.builder_email&&!bld[b].em)bld[b].em=r.builder_email});
+var sorted=Object.values(bld).sort(function(a,b){return b.u-a.u}).slice(0,8);
+document.getElementById("blS").textContent=Object.keys(bld).length+" builders in view";
+document.getElementById("blR").innerHTML=sorted.map(function(b){
+var on=openPanel==="bl"&&openKey===b.name?" on":"";
+return'<div class="bc'+on+'" onclick="toggle(\'bl\',\''+esc(b.name)+'\')"><div><div class="bn">'+b.name+'</div><div class="bm">'+b.p+" project"+(b.p>1?"s":"")+" \u00b7 "+'<a href="tel:'+b.ph+'">'+b.ph+'</a></div></div><div class="bs"><div class="bv">'+b.u.toLocaleString("en-IN")+'</div><div class="bl">units</div></div></div>'}).join("")}
+
+function esc(s){return s.replace(/'/g,"\\'")}
+
+function toggle(panel,key){
+if(openPanel===panel&&openKey===key){closeAll();rPh();rSz();rBk();rBl();return}
+closeAll();openPanel=panel;openKey=key;
+var xp=document.getElementById(panel+"X");
+var rows=[];
+if(panel==="ph")rows=VIEW.filter(function(r){return r._phk===key});
+else if(panel==="sz")rows=VIEW.filter(function(r){return r._szk===key});
+else if(panel==="bk")rows=VIEW.filter(function(r){return r.bhk_mix===key});
+else if(panel==="bl")rows=VIEW.filter(function(r){return r.builder===key});
+rows.sort(function(a,b){return(parseInt(b.total_units)||0)-(parseInt(a.total_units)||0)});
+var label=panel==="ph"?(PH.find(function(p){return p.k===key})||{}).l:panel==="sz"?(SZ.find(function(s){return s.k===key})||{}).l:key;
+var totalU=rows.reduce(function(s,r){return s+(parseInt(r.total_units)||0)},0);
+var h='<div class="xp-head"><b>'+label+"</b><span>"+rows.length+" projects \u00b7 "+totalU.toLocaleString("en-IN")+' units</span></div><div class="xp-list">';
+rows.slice(0,50).forEach(function(r){
+var sc=parseFloat(r.progress_score)||0;
+var col=sc>=85?"var(--win)":sc>=60?"var(--hot)":sc>=30?"var(--pri)":"var(--mute)";
+var cost=r.cost_in_cr?"\u20b9"+parseFloat(r.cost_in_cr).toFixed(1)+" Cr":"\u2014";
+var sqft=r._sqft||"\u2014";var units=r.total_units||"\u2014";var bhk=r.bhk_mix||"\u2014";
+var prog=sc>0?'<span class="pb"><i style="width:'+Math.min(sc,100)+"%;background:"+col+'"></i></span> '+sc.toFixed(0)+"%":"\u2014";
+var phone=r.builder_mobile?'<a class="xi-phone" href="tel:'+r.builder_mobile+'">'+r.builder_mobile+"</a>":"";
+h+='<div class="xp-item"><div><div class="xi-name">'+(r.project_name||"\u2014")+'</div><div class="xi-builder">'+(r.builder||"\u2014")+'</div><div class="xi-meta"><div class="xm"><div class="xm-l">Units</div><div class="xm-v">'+units+'</div></div><div class="xm"><div class="xm-l">BHK</div><div class="xm-v">'+bhk+'</div></div><div class="xm"><div class="xm-l">Size</div><div class="xm-v">'+sqft+' sqft</div></div><div class="xm"><div class="xm-l">Progress</div><div class="xm-v">'+prog+'</div></div></div></div><div class="xi-act"><div class="xi-cost">'+cost+"</div>"+phone+"</div></div>"});
+h+="</div>";xp.innerHTML=h;xp.classList.add("open");rPh();rSz();rBk();rBl();
+xp.scrollIntoView({behavior:"smooth",block:"nearest"})}
+
+function closeAll(){document.querySelectorAll(".xp").forEach(function(x){x.classList.remove("open");x.innerHTML=""});openPanel=null;openKey=null}
+
+function rMain(){
+var q=(document.getElementById("fS").value||"").toLowerCase();
+var d=VIEW.slice();
+if(q)d=d.filter(function(r){return(r.project_name+" "+r.builder+" "+r.rera_id).toLowerCase().indexOf(q)>=0});
+d.sort(function(a,b){if(!sC)return(parseInt(b.total_units)||0)-(parseInt(a.total_units)||0);
+var va=a[sC]||"",vb=b[sC]||"";
+var col=MCOLS.find(function(c){return c.k===sC});
+if(col&&col.n){va=parseFloat(va)||0;vb=parseFloat(vb)||0;return(va-vb)*sD}
+return va.toString().localeCompare(vb.toString())*sD});
+document.getElementById("mCn").textContent=d.length.toLocaleString("en-IN")+" projects";
+document.getElementById("mH").innerHTML=MCOLS.map(function(c){
+return'<th onclick="sC=\''+c.k+"\';sD=sC==='"+c.k+"'?-sD:-1;rMain()\">"+c.l+(sC===c.k?(sD===1?" \u2191":" \u2193"):"")+"</th>"}).join("");
+var s=(pg-1)*PS,p=d.slice(s,s+PS);
+document.getElementById("mB").innerHTML=p.map(function(r){return"<tr>"+MCOLS.map(function(c){
+var v=r[c.k]||"";
+if(c.k==="_phase"&&v&&v!=="\u2014"){var cls="tg-m";if(v==="Electrical phase")cls="tg-r";
+else if(v==="Finishing"||v==="Completed")cls="tg-g";else if(v==="Structure"||v==="On track")cls="tg-b";
+else if(v==="At risk")cls="tg-o";v='<span class="tg '+cls+'">'+v+"</span>"}
+if(c.k==="progress_score"&&v){var n=parseFloat(v);if(!isNaN(n)){var col=n>=85?"var(--win)":n>=60?"var(--hot)":n>=30?"var(--pri)":"var(--mute)";
+v='<span class="pb"><i style="width:'+Math.min(n,100)+"%;background:"+col+'"></i></span>'+n.toFixed(0)+"%"}}
+if(c.k==="cost_in_cr"&&v)v="\u20b9"+parseFloat(v).toFixed(1);
+if(c.k==="builder_mobile"&&v)v='<a href="tel:'+v+'" style="color:var(--pri);text-decoration:none">'+v+"</a>";
+if(!v)v='<span class="gap">\u2014</span>';
+return'<td class="'+(c.w?"wc":"")+'">'+v+"</td>"}).join("")+"</tr>"}).join("");
+var pp=Math.ceil(d.length/PS);if(pp<=1){document.getElementById("mPg").innerHTML="";return}
+var h=pg===1?'<button disabled>\u2039</button>':'<button onclick="pg--;rMain()">\u2039</button>';
+var sh=[];for(var i=1;i<=pp;i++){if(i===1||i===pp||(i>=pg-2&&i<=pg+2))sh.push(i);else if(sh[sh.length-1]!=="\u2026")sh.push("\u2026")}
+sh.forEach(function(p){if(p==="\u2026")h+='<span class="pi">\u2026</span>';else h+='<button class="'+(p===pg?"ac":"")+'" onclick="pg='+p+';rMain()">'+p+"</button>"});
+h+=pg===pp?'<button disabled>\u203a</button>':'<button onclick="pg++;rMain()">\u203a</button>';
+h+='<span class="pi"> '+d.length.toLocaleString("en-IN")+"</span>";
+document.getElementById("mPg").innerHTML=h}
+
+function expCSV(){var d=VIEW;if(!d.length)return;
+var ks=["project_name","builder","rera_id","total_units","bhk_mix","_sqft","_phase","progress_score",
+"cost_in_cr","unit_price_range_lakhs","builder_mobile","builder_email","address"];
+var ls=["Project","Builder","RERA ID","Units","BHK","Size (sqft)","Phase","Progress","Cost (Cr)","Unit Price","Phone","Email","Address"];
+var csv=ls.join(",")+String.fromCharCode(10);
+d.forEach(function(r){csv+=ks.map(function(k){return'"'+(r[k]||"").toString().replace(/"/g,'""')+'"'}).join(",")+String.fromCharCode(10)});
+var blob=new Blob(["\ufeff"+csv],{type:"text/csv"});var a=document.createElement("a");
+a.href=URL.createObjectURL(blob);a.download="mangoe_pipeline.csv";a.click()}
+
+// ---- LOAD DATA ----
+fetch("./data.json").then(function(r){
+  if(r.ok)return r.json();
+  throw new Error("No data.json")
+}).then(function(d){
+  loadData(d)
+}).catch(function(e){
+  console.log(e);
+  document.getElementById("emS").textContent="Upload the scraper output to see your pipeline.";
+  uz.style.display="block";
+});
+</script>
+</body></html>
